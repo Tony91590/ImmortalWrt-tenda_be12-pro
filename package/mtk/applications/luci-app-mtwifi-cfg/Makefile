@@ -6,8 +6,11 @@
 
 include $(TOPDIR)/rules.mk
 
+# Rescan after LuCI feeds arrive if the initial package scan ran before them.
+SCAN_DEPS = $(TOPDIR)/feeds/luci/luci.mk
+
 LUCI_TITLE:=LuCI support for mtwifi-cfg
-LUCI_DEPENDS:=+mtwifi-cfg-ucode +rpcd-mod-ucode +rpcd-mod-iwinfo
+LUCI_DEPENDS:=+luci-mod-network +mtwifi-cfg-ucode +rpcd-mod-ucode +rpcd-mod-iwinfo
 LUCI_PKGARCH:=all
 
 PKG_VERSION:=1

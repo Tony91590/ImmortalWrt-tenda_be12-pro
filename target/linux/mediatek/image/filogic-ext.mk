@@ -155,7 +155,8 @@ define Device/tenda_be12-pro
   DEVICE_MODEL := BE12 Pro
   DEVICE_DTS := mt7987a-tenda-be12-pro
   DEVICE_DTS_DIR := ../dts-ext
-  DEVICE_PACKAGES := kmod-mt798x-2p5g-phy airoha-en8811h-firmware kmod-phy-airoha-en8811h
+  DEVICE_PACKAGES := kmod-mt798x-2p5g-phy airoha-en8811h-firmware kmod-phy-airoha-en8811h \
+        luci-app-mtwifi-cfg
   UBINIZE_OPTS := -E 5
   BLOCKSIZE := 128k
   PAGESIZE := 2048
