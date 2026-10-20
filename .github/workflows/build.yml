@@ -103,7 +103,7 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Apply LuCI Patch
+      - name: Apply OpenWrt Patches
         run: |
           set -euo pipefail
 
@@ -116,6 +116,8 @@ jobs:
 
           patch --dry-run -p1 < "$PATCH_FILE"
           patch -p1 < "$PATCH_FILE"
+
+          find . -type f -name '*.orig' -delete
 
       - name: Load Configuration (${{ matrix.config_name }})
         run: |
