@@ -107,7 +107,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          PATCH_FILE="patches/mon-patch.patch"
+          PATCH_FILE="patches/diff.patch"
 
           if [ ! -f "$PATCH_FILE" ]; then
             echo "::error::Patch file not found: $PATCH_FILE"
