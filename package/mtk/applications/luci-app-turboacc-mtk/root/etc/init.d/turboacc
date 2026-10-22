@@ -79,14 +79,6 @@ _uci_bool_enabled() {
 	return 1
 }
 
-default_fullcone_mode() {
-	if [ -e "/lib/modules/$(uname -r)/xt_FULLCONENAT.ko" ]; then
-		printf '1\n'
-	else
-		printf '2\n'
-	fi
-}
-
 # ---------------------------------------------------------------------------
 # procd lifecycle
 # ---------------------------------------------------------------------------
@@ -97,11 +89,6 @@ stop_service() {
 
 	# disable HNAT hook if still accessible
 	disable_hnat_runtime "$hnat_path"
-
-	# restore fullcone to a safe default
-	if [ -w "/proc/sys/net/netfilter/nf_conntrack_nat_mode" ]; then
-		echo "0" >"/proc/sys/net/netfilter/nf_conntrack_nat_mode" 2>/dev/null
-	fi
 
 	# restore TCP CCA to cubic
 	sysctl -w net.ipv4.tcp_congestion_control=cubic >/dev/null 2>&1
@@ -197,14 +184,6 @@ start_service() {
 		;;
 	esac
 
-	# ---------- fullcone NAT ----------
-	local fullcone
-	config_get fullcone "config" "fullcone" "$(default_fullcone_mode)"
-	if [ -w "/proc/sys/net/netfilter/nf_conntrack_nat_mode" ]; then
-		echo "$fullcone" >"/proc/sys/net/netfilter/nf_conntrack_nat_mode" 2>/dev/null || \
-			logger -t turboacc "WARNING: failed to write nf_conntrack_nat_mode=$fullcone"
-	fi
-
 	# ---------- TCP CCA ----------
 	local tcpcca
 	config_get tcpcca "config" "tcpcca" "cubic"
@@ -215,7 +194,7 @@ start_service() {
 		logger -t turboacc "WARNING: tcpcca=$tcpcca not available, keeping current"
 	fi
 
-	logger -t turboacc "started (fastpath=$fastpath fullcone=$fullcone tcpcca=$tcpcca)"
+	logger -t turboacc "started (fastpath=$fastpath tcpcca=$tcpcca)"
 }
 
 reload_service() {
