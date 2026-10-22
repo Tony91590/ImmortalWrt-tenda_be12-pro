@@ -20,12 +20,6 @@ var getFastPathStat = rpc.declare({
 	expect: { '': {} }
 });
 
-var getFullConeStat = rpc.declare({
-	object: 'luci.turboacc',
-	method: 'getFullConeStat',
-	expect: { '': {} }
-});
-
 var getTCPCCAStat = rpc.declare({
 	object: 'luci.turboacc',
 	method: 'getTCPCCAStat',
@@ -41,7 +35,6 @@ var getMTKPPEStat = rpc.declare({
 function getServiceStatus() {
 	return Promise.all([
 		L.resolveDefault(getFastPathStat(), {}),
-		L.resolveDefault(getFullConeStat(), {}),
 		L.resolveDefault(getTCPCCAStat(), {})
 	]);
 }
@@ -97,10 +90,6 @@ function isEngineAvailable(flag, config, key) {
 	return !!flag || configUsesEngine(config, key);
 }
 
-function getDefaultFullcone(features) {
-	return features && features.hasXTFULLCONENAT ? '1' : '2';
-}
-
 function getConfigState(features) {
 	var fastpath = normalizeFastpathValue(uci.get('turboacc', 'config', 'fastpath'));
 
@@ -115,7 +104,6 @@ function getConfigState(features) {
 		fastpath_mh_eth_hnat: boolValue(uci.get('turboacc', 'config', 'fastpath_mh_eth_hnat')),
 		fastpath_mh_eth_hnat_v6: boolValue(uci.get('turboacc', 'config', 'fastpath_mh_eth_hnat_v6')),
 		fastpath_mh_eth_hnat_bind_rate: trimValue(uci.get('turboacc', 'config', 'fastpath_mh_eth_hnat_bind_rate')) || '30',
-		fullcone: trimValue(uci.get('turboacc', 'config', 'fullcone')) || getDefaultFullcone(features),
 		tcpcca: trimValue(uci.get('turboacc', 'config', 'tcpcca')) || 'cubic'
 	};
 }
@@ -194,10 +182,6 @@ function getRuntimeLabel(token) {
 	case 'MediaTek HWNAT':
 	case 'MediaTek HNAT':
 		return _('MediaTek HNAT');
-	case 'xt_FULLCONENAT':
-		return _('XT_FULLCONE_NAT');
-	case 'Boardcom Fullcone':
-		return _('Boardcom_FULLCONE_NAT');
 	case 'Ethernet HNAT Disabled':
 		return _('Ethernet HNAT disabled');
 	case 'HNAT Partially Enabled':
@@ -237,17 +221,6 @@ function buildStatusMeta(value, emptyDetail, activeDetail) {
 		warnings: parts.length > 1 ? parts.slice(1) : [],
 		detail: parts.length > 1 ? parts.slice(1).join(' \u00b7 ') : (parts.length ? (activeDetail || parts[0]) : (emptyDetail || _('No active acceleration path detected.')))
 	};
-}
-
-function getFullconeConfigLabel(value) {
-	switch (trimValue(value)) {
-	case '1':
-		return _('XT_FULLCONE_NAT (better compatibility)');
-	case '2':
-		return _('Boardcom_FULLCONE_NAT (legacy compatibility)');
-	default:
-		return _('Disabled');
-	}
 }
 
 function getIPv6ModeText(config, features) {
@@ -569,8 +542,7 @@ function getHealthState(state) {
 	var runtimeType = trimValue(service[0] && service[0].type);
 	var runtimeKey = getRuntimeEngineKey(runtimeType);
 	var runtimeMeta = buildStatusMeta(runtimeType, _('No active acceleration path detected.'), _('Primary acceleration path reported by the kernel.'));
-	var fullconeMeta = buildStatusMeta(service[1] && service[1].type, _('Disabled'));
-	var tcpccaLabel = trimValue(service[2] && service[2].type) || String(config.tcpcca || '').toUpperCase() || '--';
+	var tcpccaLabel = trimValue(service[1] && service[1].type) || String(config.tcpcca || '').toUpperCase() || '--';
 	var notes = [];
 	var pills = [];
 	var level = 'is-idle';
@@ -640,7 +612,6 @@ function getHealthState(state) {
 		configuredKey: configuredKey,
 		runtimeKey: runtimeKey,
 		runtimeMeta: runtimeMeta,
-		fullconeMeta: fullconeMeta,
 		tcpccaLabel: tcpccaLabel,
 		headlineTone: headlineTone,
 		pills: pills,
@@ -682,17 +653,12 @@ function renderStatusStrip(state, health) {
 	var features = state.features || {};
 	var config = state.config || {};
 	var ipv6Text = getIPv6ModeText(config, features);
-	var fullconeEnabled = trimValue(config.fullcone) !== '0';
 	var ipv6Enabled = ipv6Text !== _('Disabled') && ipv6Text !== _('Unavailable');
 
 	return E('div', { 'class': 'ta-status-strip' }, [
 		E('div', { 'class': 'ta-status-item' }, [
 			E('span', {}, _('Config')),
 			renderStatusStrong(getEngineLabel(config.fastpath), normalizeFastpathValue(config.fastpath) !== 'disabled')
-		]),
-		E('div', { 'class': 'ta-status-item' }, [
-			E('span', {}, _('NAT')),
-			renderStatusStrong(getFullconeConfigLabel(config.fullcone), fullconeEnabled)
 		]),
 		E('div', { 'class': 'ta-status-item' }, [
 			E('span', {}, _('IPv6')),
@@ -726,7 +692,7 @@ function renderSummaryGrid(state, health) {
 		renderStatCard(_('Real-time path'), health.runtimeMeta.primary, health.runtimeMeta.detail, 'is-good', health.runtimeMeta.warnings.map(function(tag) {
 			return renderChip(tag, 'is-warning');
 		})),
-		renderStatCard(_('NAT / TCP policy'), getFullconeConfigLabel(config.fullcone), _('TCP CCA') + ' \u00b7 ' + health.tcpccaLabel, 'is-warning', [
+		renderStatCard(_('TCP CCA'), health.tcpccaLabel, _('TCP congestion control policy'), 'is-info', [
 			renderChip(_('IPv6') + ' \u00b7 ' + ipv6Text, ipv6Text === _('Enabled') ? 'is-ok' : 'is-muted')
 		]),
 		renderStatCard(normalizeFastpathValue(config.fastpath) === 'mediatek_hnat' ? _('PPE sessions') : _('Engine pool'), sessionValue, sessionDetail, 'is-accent', [
@@ -754,19 +720,6 @@ function renderFocusGrid(state, health) {
 			],
 			[
 				renderChip(hnatEnabled ? _('Priority check') : _('Switch on demand'), 'is-info')
-			]
-		),
-		renderInsightCard(
-			_('Gaming & NAT behavior'),
-			getFullconeConfigLabel(config.fullcone),
-			_('Full cone NAT primarily affects multiplayer and port mapping, not the data path itself.'),
-			'is-warning',
-			[
-				[ _('Runtime feedback'), health.fullconeMeta.primary ],
-				[ _('Risk note'), trimValue(config.fullcone) === '0' ? _('Multiplayer scenarios rely more on manual mapping') : _('Better suited for game consoles and P2P scenarios') ]
-			],
-			[
-				renderChip(_('Experience'), 'is-warning')
 			]
 		),
 		renderInsightCard(
@@ -818,7 +771,6 @@ function renderTelemetryGrid(state, health) {
 				[ _('Runtime warnings'), health.runtimeMeta.warnings.length ? E('div', { 'class': 'ta-chip-list' }, health.runtimeMeta.warnings.map(function(tag) {
 					return renderChip(tag, 'is-warning');
 				})) : renderChip(_('None'), 'is-ok') ],
-				[ _('Full cone NAT'), health.fullconeMeta.primary ],
 				[ _('TCP CCA'), health.tcpccaLabel ],
 				[ _('IPv6 acceleration'), getIPv6ModeText(config, features) ],
 				[ _('PPE lane count'), normalizeFastpathValue(config.fastpath) === 'mediatek_hnat' ? displayValue(ppe.count) : null ],
@@ -834,7 +786,6 @@ function renderTelemetryGrid(state, health) {
 					renderFeatureTag(features.hasFASTCLASSIFIER, _('Fast classifier')),
 					renderFeatureTag(features.hasSHORTCUTFECM, _('SFE')),
 					renderFeatureTag(features.hasMEDIATEKHNAT, _('HNAT')),
-					renderFeatureTag(features.hasXTFULLCONENAT, _('FullCone')),
 					renderFeatureTag(features.hasIPV6, _('IPv6'))
 				]),
 				renderInfoGrid([
@@ -842,7 +793,6 @@ function renderTelemetryGrid(state, health) {
 					[ _('Fast classifier'), renderFeatureTag(features.hasFASTCLASSIFIER) ],
 					[ _('SFE connection manager'), renderFeatureTag(features.hasSHORTCUTFECM) ],
 					[ _('MediaTek HNAT'), renderFeatureTag(features.hasMEDIATEKHNAT) ],
-					[ _('XT_FULLCONE_NAT'), renderFeatureTag(features.hasXTFULLCONENAT) ],
 					[ _('Kernel IPv6 stack'), renderFeatureTag(features.hasIPV6) ]
 				])
 			])
@@ -881,7 +831,6 @@ function renderCompactOverviewLegacy(state, health) {
 	var rows = [
 		[ _('Primary acceleration engine'), getEngineLabel(config.fastpath) ],
 		[ _('Real-time path'), health.runtimeMeta.primary ],
-		[ _('Full cone NAT'), health.fullconeMeta.primary ],
 		[ _('TCP CCA'), health.tcpccaLabel ],
 		[ _('IPv6'), getIPv6ModeText(config, features) ]
 	];
@@ -939,10 +888,10 @@ function renderCompactOverview(state, health) {
 			runtimeChips
 		),
 		renderStatCard(
-			_('NAT / TCP'),
-			getFullconeConfigLabel(config.fullcone),
-			_('TCP CCA') + ' \u00b7 ' + health.tcpccaLabel,
-			'is-warning',
+			_('TCP CCA'),
+			health.tcpccaLabel,
+			_('TCP congestion control policy'),
+			'is-info',
 			[
 				renderChip(_('IPv6') + ' \u00b7 ' + ipv6Text, ipv6Text === _('Enabled') ? 'is-ok' : 'is-muted')
 			]
@@ -952,7 +901,6 @@ function renderCompactOverview(state, health) {
 		[ _('Primary acceleration engine'), getEngineLabel(config.fastpath) ],
 		[ _('Real-time path'), health.runtimeMeta.primary ],
 		[ _('Runtime warnings'), health.runtimeMeta.warnings.length ? health.runtimeMeta.warnings.join(' / ') : _('None') ],
-		[ _('Full cone NAT'), health.fullconeMeta.primary ],
 		[ _('TCP CCA'), health.tcpccaLabel ],
 		[ _('IPv6'), ipv6Text ]
 	];
@@ -1029,7 +977,7 @@ function buildForm(features, config) {
 	var showMediatekHnat = true;
 
 	s.tab('engine', _('Main path'), _('Select the primary acceleration engine.'));
-	s.tab('experience', _('Experience tuning'), _('NAT and TCP settings.'));
+	s.tab('experience', _('Experience tuning'), _('TCP settings.'));
 
 	if (showMediatekHnat)
 		s.tab('hnat', _('HNAT advanced'), _('MediaTek HNAT specific settings.'));
@@ -1159,15 +1107,6 @@ function buildForm(features, config) {
 		}
 	}
 
-	o = s.taboption('experience', form.ListValue, 'fullcone', _('Full cone NAT'),
-		_('Enable for gaming or P2P needs.'));
-	o.value('0', _('Disable'));
-	if (features.hasXTFULLCONENAT || config.fullcone === '1')
-		o.value('1', _('XT_FULLCONE_NAT'));
-	o.value('2', _('Boardcom_FULLCONE_NAT'));
-	o.default = config.fullcone || getDefaultFullcone(features);
-	o.widget = 'select';
-	o.rmempty = false;
 
 	if (tcpccaOptions.indexOf(config.tcpcca) < 0)
 		tcpccaOptions.push(config.tcpcca);
