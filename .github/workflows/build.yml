@@ -104,36 +104,36 @@ jobs:
           ./scripts/feeds install -a
 
       - name: Apply OpenWrt Patches
-    run: |
-      set -euo pipefail
+        run: |
+           set -euo pipefail
 
-      # Apply ifdown fix from GitHub commit
-      IFDOWN_PATCH_URL="https://github.com/Tony91590/ImmortalWrt-tenda_be12-pro/commit/df7f2834742ae6850bb1a24d64ce53726c11e7fe.patch"
+           # Apply ifdown fix from GitHub commit
+           IFDOWN_PATCH_URL="https://github.com/Tony91590/ImmortalWrt-tenda_be12-pro/commit/df7f2834742ae6850bb1a24d64ce53726c11e7fe.patch"
 
-      wget -O /tmp/fix-ifdown.patch "$IFDOWN_PATCH_URL"
+           wget -O /tmp/fix-ifdown.patch "$IFDOWN_PATCH_URL"
 
-      if git apply --check /tmp/fix-ifdown.patch; then
-        git apply /tmp/fix-ifdown.patch
-        echo "ifdown patch applied successfully."
-      elif git apply --reverse --check /tmp/fix-ifdown.patch; then
-        echo "ifdown patch already applied; skipping."
-      else
-        echo "::error::ifdown patch cannot be applied to the current source."
-        exit 1
-      fi
+             if git apply --check /tmp/fix-ifdown.patch; then
+               git apply /tmp/fix-ifdown.patch
+                echo "ifdown patch applied successfully."
+             elif git apply --reverse --check /tmp/fix-ifdown.patch; then
+                echo "ifdown patch already applied; skipping."
+            else
+                echo "::error::ifdown patch cannot be applied to the current source."
+            exit 1
+            fi
 
-      # Apply your existing custom patch
-      PATCH_FILE="patches/diff.patch"
+            # Apply your existing custom patch
+            PATCH_FILE="patches/diff.patch"
 
-      if [ ! -f "$PATCH_FILE" ]; then
-        echo "::error::Patch file not found: $PATCH_FILE"
-        exit 1
-      fi
+            if [ ! -f "$PATCH_FILE" ]; then
+             echo "::error::Patch file not found: $PATCH_FILE"
+           exit 1
+           fi
 
-      patch --dry-run -p1 < "$PATCH_FILE"
-      patch -p1 < "$PATCH_FILE"
+           patch --dry-run -p1 < "$PATCH_FILE"
+           patch -p1 < "$PATCH_FILE"
 
-      find . -type f -name '*.orig' -delete
+           find . -type f -name '*.orig' -delete
 
       - name: Load Configuration (${{ matrix.config_name }})
         run: |
