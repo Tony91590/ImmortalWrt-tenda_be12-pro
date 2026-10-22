@@ -66,6 +66,6 @@ define Package/ip6tables-mod-fullconenat/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/libip6t_FULLCONENAT.so $(1)/usr/lib/iptables
 endef
 
-#$(eval $(call BuildPackage,iptables-mod-fullconenat))
-#$(eval $(call BuildPackage,ip6tables-mod-fullconenat))
-#$(eval $(call KernelPackage,ipt-fullconenat))
+$(eval $(call BuildPackage,iptables-mod-fullconenat))
+$(eval $(call BuildPackage,ip6tables-mod-fullconenat))
+$(eval $(call KernelPackage,ipt-fullconenat))
