@@ -692,7 +692,7 @@ function renderSummaryGrid(state, health) {
 		renderStatCard(_('Real-time path'), health.runtimeMeta.primary, health.runtimeMeta.detail, 'is-good', health.runtimeMeta.warnings.map(function(tag) {
 			return renderChip(tag, 'is-warning');
 		})),
-		renderStatCard(_('TCP CCA'), health.tcpccaLabel, _('TCP congestion control policy'), 'is-warning', [
+		renderStatCard(_('TCP CCA') + ' \u00b7 ' + health.tcpccaLabel, 'is-warning', [
 			renderChip(_('IPv6') + ' \u00b7 ' + ipv6Text, ipv6Text === _('Enabled') ? 'is-ok' : 'is-muted')
 		]),
 		renderStatCard(normalizeFastpathValue(config.fastpath) === 'mediatek_hnat' ? _('PPE sessions') : _('Engine pool'), sessionValue, sessionDetail, 'is-accent', [
@@ -888,9 +888,7 @@ function renderCompactOverview(state, health) {
 			runtimeChips
 		),
 		renderStatCard(
-			_('TCP CCA'),
-			health.tcpccaLabel,
-			_('TCP congestion control policy'),
+			_('TCP CCA') + ' \u00b7 ' + health.tcpccaLabel,
 			'is-warning',
 			[
 				renderChip(_('IPv6') + ' \u00b7 ' + ipv6Text, ipv6Text === _('Enabled') ? 'is-ok' : 'is-muted')
