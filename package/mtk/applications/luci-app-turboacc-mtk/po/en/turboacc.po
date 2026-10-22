@@ -13,10 +13,6 @@ msgid "Acceleration Status"
 msgstr "Acceleration Status"
 
 #: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js:191
-msgid "Boardcom_FULLCONE_NAT"
-msgstr "Boardcom_FULLCONE_NAT"
-
-#: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js:151
 msgid "Bridge Acceleration"
 msgstr "Bridge Acceleration"
 
@@ -104,18 +100,6 @@ msgid "Flow offloading"
 msgstr "Flow offloading"
 
 #: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js:98
-msgid "Full Cone NAT"
-msgstr "Full Cone NAT"
-
-#: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js:186
-msgid "Full cone NAT"
-msgstr "Full cone NAT"
-
-#: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js:187
-msgid "Full cone NAT (NAT1) can improve gaming performance effectively."
-msgstr "Full cone NAT (NAT1) can improve gaming performance effectively."
-
-#: applications/luci-app-turboacc/root/usr/share/rpcd/acl.d/luci-app-turboacc.json:3
 msgid "Grant UCI access for luci-app-turboacc"
 msgstr "Grant UCI access for luci-app-turboacc"
 
@@ -186,10 +170,6 @@ msgid "Enable IPv6 Acceleration."
 msgstr "Enable IPv6 Acceleration."
 
 #: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js:190
-msgid "XT_FULLCONE_NAT"
-msgstr "XT_FULLCONE_NAT"
-
-# Extra entries used in turboacc.js runtime
 msgid "Apply this setting after reboot."
 msgstr "Apply this setting after reboot."
 
@@ -346,12 +326,6 @@ msgstr ""
 
 msgid "No primary acceleration engine is currently enabled."
 msgstr "No primary acceleration engine is currently enabled."
-
-msgid "XT_FULLCONE_NAT (better compatibility)"
-msgstr "XT_FULLCONE_NAT (better compatibility)"
-
-msgid "Boardcom_FULLCONE_NAT (legacy compatibility)"
-msgstr "Boardcom_FULLCONE_NAT (legacy compatibility)"
 
 msgid "Follow main path"
 msgstr "Follow main path"
@@ -511,24 +485,11 @@ msgstr "Switch on demand"
 msgid "Gaming & NAT behavior"
 msgstr "Gaming & NAT behavior"
 
-msgid ""
-"Full cone NAT primarily affects multiplayer and port mapping, not the data "
-"path itself."
-msgstr ""
-"Full cone NAT primarily affects multiplayer and port mapping, not the data "
-"path itself."
-
 msgid "Runtime feedback"
 msgstr "Runtime feedback"
 
 msgid "Risk note"
 msgstr "Risk note"
-
-msgid "Multiplayer scenarios rely more on manual mapping"
-msgstr "Multiplayer scenarios rely more on manual mapping"
-
-msgid "Better suited for game consoles and P2P scenarios"
-msgstr "Better suited for game consoles and P2P scenarios"
 
 msgid "Experience"
 msgstr "Experience"
@@ -572,9 +533,6 @@ msgstr "SFE"
 
 msgid "HNAT"
 msgstr "HNAT"
-
-msgid "FullCone"
-msgstr "FullCone"
 
 msgid "Status OK"
 msgstr "Status OK"
@@ -734,9 +692,6 @@ msgstr "Enable IPv6 for Fast classifier"
 
 msgid "Enable IPv6 acceleration."
 msgstr "Enable IPv6 acceleration."
-
-msgid "Enable for gaming or P2P needs."
-msgstr "Enable for gaming or P2P needs."
 
 msgid "TCP congestion control algorithm"
 msgstr "TCP congestion control algorithm"
