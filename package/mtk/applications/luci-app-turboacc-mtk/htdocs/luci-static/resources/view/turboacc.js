@@ -891,7 +891,7 @@ function renderCompactOverview(state, health) {
 			_('TCP CCA'),
 			health.tcpccaLabel,
 			_('TCP congestion control policy'),
-			'is-info',
+			'is-warning',
 			[
 				renderChip(_('IPv6') + ' \u00b7 ' + ipv6Text, ipv6Text === _('Enabled') ? 'is-ok' : 'is-muted')
 			]
