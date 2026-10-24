@@ -16,8 +16,6 @@ LUCI_DEPENDS:= \
 	+luci-lua-runtime \
 	+kmod-tcp-bbr \
 	+kmod-nft-socket +kmod-nft-tproxy +kmod-nft-nat \
-	+kmod-ipt-nat6 +kmod-ipt-nat \
-	+kmod-ipt-physdev \
 	@!PACKAGE_luci-app-turboacc
 LUCI_PKGARCH:=all
 
