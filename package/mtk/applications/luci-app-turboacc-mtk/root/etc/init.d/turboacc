@@ -195,6 +195,11 @@ start_service() {
 	fi
 
 	logger -t turboacc "started (fastpath=$fastpath tcpcca=$tcpcca)"
+
+	sed -i '/prefer-family/d' /etc/wgetrc
+	echo "prefer-family = IPv4" >> /etc/wgetrc
+	echo 4096 > /proc/sys/vm/min_free_kbytes
+	echo 3 > /proc/sys/vm/drop_caches
 }
 
 reload_service() {
