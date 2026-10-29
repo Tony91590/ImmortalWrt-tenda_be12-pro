@@ -12,10 +12,6 @@ msgstr ""
 msgid "Acceleration Status"
 msgstr "Acceleration Status"
 
-#: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js:191
-msgid "Boardcom_FULLCONE_NAT"
-msgstr "Boardcom_FULLCONE_NAT"
-
 #: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js:151
 msgid "Bridge Acceleration"
 msgstr "Bridge Acceleration"
@@ -186,8 +182,8 @@ msgid "Enable IPv6 Acceleration."
 msgstr "Enable IPv6 Acceleration."
 
 #: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js:190
-msgid "XT_FULLCONE_NAT"
-msgstr "XT_FULLCONE_NAT"
+msgid "NFT_FULLCONE_NAT"
+msgstr "NFT_FULLCONE_NAT"
 
 # Extra entries used in turboacc.js runtime
 msgid "Apply this setting after reboot."
@@ -347,11 +343,8 @@ msgstr ""
 msgid "No primary acceleration engine is currently enabled."
 msgstr "No primary acceleration engine is currently enabled."
 
-msgid "XT_FULLCONE_NAT (better compatibility)"
-msgstr "XT_FULLCONE_NAT (better compatibility)"
-
-msgid "Boardcom_FULLCONE_NAT (legacy compatibility)"
-msgstr "Boardcom_FULLCONE_NAT (legacy compatibility)"
+msgid "NFT_FULLCONE_NAT (better compatibility)"
+msgstr "NFT_FULLCONE_NAT (better compatibility)"
 
 msgid "Follow main path"
 msgstr "Follow main path"
