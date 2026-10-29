@@ -12,10 +12,6 @@ msgstr ""
 msgid "Acceleration Status"
 msgstr "加速状态"
 
-#: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js:191
-msgid "Boardcom_FULLCONE_NAT"
-msgstr "Boardcom_FULLCONE_NAT(更低的CPU占用)"
-
 #: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js:151
 msgid "Bridge Acceleration"
 msgstr "桥接加速"
@@ -184,8 +180,8 @@ msgid "TurboACC settings"
 msgstr "网络加速设置"
 
 #: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js:190
-msgid "XT_FULLCONE_NAT"
-msgstr "XT_FULLCONE_NAT(更佳的兼容性)"
+msgid "NFT_FULLCONE_NAT"
+msgstr "NFT_FULLCONE_NAT(更佳的兼容性)"
 
 msgid "Apply this setting after reboot."
 msgstr "重启后应用此项设置。"
@@ -328,11 +324,8 @@ msgstr "mt798x 在 24.10 下的主力有线加速通路，可配合 PPE 实时�
 msgid "No primary acceleration engine is currently enabled."
 msgstr "当前未启用主加速引擎。"
 
-msgid "XT_FULLCONE_NAT (better compatibility)"
-msgstr "XT_FULLCONE_NAT（更佳的兼容性）"
-
-msgid "Boardcom_FULLCONE_NAT (legacy compatibility)"
-msgstr "Boardcom_FULLCONE_NAT（旧实现兼容）"
+msgid "NFT_FULLCONE_NAT (better compatibility)"
+msgstr "NFT_FULLCONE_NAT（更佳的兼容性）"
 
 msgid "Follow main path"
 msgstr "跟随主通路"
