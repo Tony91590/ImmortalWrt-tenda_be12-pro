@@ -30,14 +30,6 @@ msgid "Bind threshold"
 msgstr ""
 
 #: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js
-msgid "Boardcom_FULLCONE_NAT"
-msgstr ""
-
-#: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js
-msgid "Boardcom_FULLCONE_NAT (legacy compatibility)"
-msgstr ""
-
-#: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js
 msgid "Bound sessions"
 msgstr ""
 
@@ -730,11 +722,11 @@ msgid "Wired IPv6 sessions can enter the HNAT path."
 msgstr ""
 
 #: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js
-msgid "XT_FULLCONE_NAT"
+msgid "NFT_FULLCONE_NAT"
 msgstr ""
 
 #: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js
-msgid "XT_FULLCONE_NAT (better compatibility)"
+msgid "NFT_FULLCONE_NAT (better compatibility)"
 msgstr ""
 
 msgid ", but the runtime kernel shows "
