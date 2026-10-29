@@ -66,8 +66,8 @@ start_service() {
 	esac
 
 	local fullcone
-	config_get "fullcone" "config" "fullcone" "2"
-	echo "$fullcone" > /proc/sys/net/netfilter/nf_conntrack_nat_mode
+	config_get "fullcone" "config" "fullcone" "1"
+	uci -q set "firewall.@defaults[0].fullcone"="$fullcone"
 
 	local tcpcca
 	config_get "tcpcca" "config" "tcpcca" "cubic"
