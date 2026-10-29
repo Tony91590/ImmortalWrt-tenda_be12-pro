@@ -208,8 +208,8 @@ start_service() {
 	fi
 
 	# ---------- commit and apply firewall ----------
-	uci -q commit firewall
-	/etc/init.d/firewall restart >/dev/null 2>&1 || \
+	uci -q commit "firewall"
+	/etc/init.d/firewall restart >"/dev/null" 2>&1|| \
 		logger -t turboacc "WARNING: firewall restart failed"
 
 	logger -t turboacc "started (fastpath=$fastpath fullcone=$fullcone tcpcca=$tcpcca)"
