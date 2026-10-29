@@ -193,8 +193,8 @@ start_service() {
 
 	# ---------- fullcone NAT ----------
 	local fullcone
-	config_get fullcone "config" "fullcone" "1"
-	uci -q set "firewall.@defaults[0].fullcone=$fullcone"
+	config_get "fullcone" "config" "fullcone" "1"
+	uci -q set "firewall.@defaults[0].fullcone"="$fullcone"
 
 	# ---------- TCP CCA ----------
 	local tcpcca
