@@ -79,14 +79,6 @@ _uci_bool_enabled() {
 	return 1
 }
 
-default_fullcone_mode() {
-	if [ -e "/lib/modules/$(uname -r)/xt_FULLCONENAT.ko" ]; then
-		printf '1\n'
-	else
-		printf '2\n'
-	fi
-}
-
 # ---------------------------------------------------------------------------
 # procd lifecycle
 # ---------------------------------------------------------------------------
