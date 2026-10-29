@@ -90,11 +90,6 @@ stop_service() {
 	# disable HNAT hook if still accessible
 	disable_hnat_runtime "$hnat_path"
 
-	# restore fullcone to a safe default
-	if [ -w "/proc/sys/net/netfilter/nf_conntrack_nat_mode" ]; then
-		echo "0" >"/proc/sys/net/netfilter/nf_conntrack_nat_mode" 2>/dev/null
-	fi
-
 	# restore TCP CCA to cubic
 	sysctl -w net.ipv4.tcp_congestion_control=cubic >/dev/null 2>&1
 
