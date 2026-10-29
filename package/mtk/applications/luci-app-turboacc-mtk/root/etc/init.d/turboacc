@@ -212,6 +212,11 @@ start_service() {
 	/etc/init.d/firewall restart >"/dev/null" 2>&1 || \
 		logger -t turboacc "WARNING: firewall restart failed"
 
+	sed -i '/prefer-family/d' /etc/wgetrc
+	echo "prefer-family = IPv4" >> /etc/wgetrc
+	echo 4096 > /proc/sys/vm/min_free_kbytes
+	echo 3 > /proc/sys/vm/drop_caches
+
 	logger -t turboacc "started (fastpath=$fastpath fullcone=$fullcone tcpcca=$tcpcca)"
 }
 
