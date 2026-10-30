@@ -240,7 +240,7 @@ function buildStatusMeta(value, emptyDetail, activeDetail) {
 function getFullconeConfigLabel(value) {
 	switch (trimValue(value)) {
 	case '1':
-		return _('NFT_FULLCONE_NAT (better compatibility)');
+		return _('NFT_FULLCONE_NAT');
 	default:
 		return _('Disabled');
 	}
@@ -1019,9 +1019,9 @@ function buildForm(features, config) {
 	var s = m.section(form.NamedSection, 'config', 'turboacc');
 	var o;
 	var tcpccaOptions = parseTokenList(features.hasTCPCCA);
-	var showFlowOffloading = true;
-	var showFastClassifier = true;
-	var showShortcutFeCm = true;
+	var showFlowOffloading = false;
+	var showFastClassifier = false;
+	var showShortcutFeCm = false;
 	var showMediatekHnat = true;
 
 	s.tab('engine', _('Main path'), _('Select the primary acceleration engine.'));
