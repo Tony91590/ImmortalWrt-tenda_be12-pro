@@ -343,9 +343,6 @@ msgstr ""
 msgid "No primary acceleration engine is currently enabled."
 msgstr "No primary acceleration engine is currently enabled."
 
-msgid "NFT_FULLCONE_NAT (better compatibility)"
-msgstr "NFT_FULLCONE_NAT (better compatibility)"
-
 msgid "Follow main path"
 msgstr "Follow main path"
 
