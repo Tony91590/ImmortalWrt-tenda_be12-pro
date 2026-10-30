@@ -21,7 +21,7 @@ start_service() {
 		rmmod "shortcut_fe_cm" 2>"/dev/null"
 	fi
 
-	echo 0 > /sys/kernel/debug/hnat/hook_toggle
+        echo 0 > /sys/kernel/debug/hnat/hook_toggle
         echo 1 > /sys/kernel/debug/hnat/hook_toggle
 	if [ "$fastpath" != "mediatek_hnat" ] && lsmod | grep -q "mtkhnat"; then
 		echo "0" > "/sys/kernel/debug/hnat/hook_toggle" 2>"/dev/null"
