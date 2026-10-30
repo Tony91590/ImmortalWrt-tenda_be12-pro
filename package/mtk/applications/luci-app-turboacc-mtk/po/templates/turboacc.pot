@@ -725,10 +725,6 @@ msgstr ""
 msgid "NFT_FULLCONE_NAT"
 msgstr ""
 
-#: applications/luci-app-turboacc/htdocs/luci-static/resources/view/turboacc.js
-msgid "NFT_FULLCONE_NAT (better compatibility)"
-msgstr ""
-
 msgid ", but the runtime kernel shows "
 msgstr ""
 
