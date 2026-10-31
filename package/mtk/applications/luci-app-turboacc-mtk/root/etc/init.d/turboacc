@@ -1,112 +1,39 @@
 #!/bin/sh /etc/rc.common
 # Copyright (C) 2018 Lean <coolsnowwolf@gmail.com>
 # Copyright (C) 2019-2022 Tianling Shen <cnsztl@immortalwrt.org>
-# Copyright (C) 2024-2026 Refactored for OpenWrt 24.10 mt798x stability
 
 START=90
 STOP=10
 USE_PROCD=1
 
-# ---------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------
-module_loaded() {
-	local module
-	for module in "$@"; do
-		[ -d "/sys/module/$module" ] && return 0
-	done
-	return 1
-}
-
-try_modprobe() {
-	local module
-	for module in "$@"; do
-		modprobe "$module" 2>/dev/null && return 0
-	done
-	return 1
-}
-
+# ---------- HNAT helpers ----------
 hnat_module_loaded() {
-	module_loaded "mtkhnat" "mediatek_hnat"
+	[ -d "/sys/module/mtkhnat" ] || [ -d "/sys/module/mediatek_hnat" ]
 }
 
 load_hnat_module() {
-	try_modprobe "mtkhnat" "mediatek_hnat"
-}
-
-disable_hnat_runtime() {
-	local hnat_path="${1:-/sys/kernel/debug/hnat}"
-
-	[ -w "$hnat_path/hook_toggle" ] && echo "0" >"$hnat_path/hook_toggle" 2>/dev/null
-	[ -w "$hnat_path/hnat_setting" ] && echo "8 0" >"$hnat_path/hnat_setting" 2>/dev/null
-}
-
-wait_hnat_debugfs() {
-	local hnat_path="${1:-/sys/kernel/debug/hnat}"
-	local i
-
-	for i in 1 2 3 4 5 6 7 8 9 10; do
-		[ -d "$hnat_path" ] && return 0
-		sleep 0.2
-	done
-
+	modprobe "mtkhnat" 2>/dev/null && return 0
+	modprobe "mediatek_hnat" 2>/dev/null && return 0
 	return 1
 }
 
-# busybox-safe debugfs mount check
-ensure_debugfs() {
-	grep -q ' /sys/kernel/debug debugfs ' /proc/mounts 2>/dev/null && return 0
-	mkdir -p /sys/kernel/debug 2>/dev/null
-	mount -t debugfs none /sys/kernel/debug 2>/dev/null && return 0
-	logger -t turboacc "WARNING: cannot mount debugfs; HNAT runtime knobs may be absent"
-	return 1
-}
-
-# write a single value to a debugfs knob
 hwrite() {
 	local path="$1"
 	local value="$2"
-	[ -n "$path" ] && [ -n "$value" ] || return 1
-	[ -w "$path" ] && echo "$value" >"$path" 2>/dev/null && return 0
-	return 1
-}
 
-_uci_bool_enabled() {
-	case "${1:-0}" in
-	1|on|true|yes|enabled) return 0 ;;
-	esac
-	return 1
-}
-
-# ---------------------------------------------------------------------------
-# procd lifecycle
-# ---------------------------------------------------------------------------
-stop_service() {
-	local hnat_path="/sys/kernel/debug/hnat"
-
-	ensure_debugfs
-
-	disable_hnat_runtime "$hnat_path"
-
-	# restore TCP CCA to cubic
-	sysctl -w net.ipv4.tcp_congestion_control=cubic >/dev/null 2>&1
-
-	logger -t turboacc "stopped"
+	[ -w "$path" ] || return 1
+	echo "$value" > "$path" 2>/dev/null
 }
 
 start_service() {
 	config_load "turboacc"
 
 	local fastpath
-	local hnat_path="/sys/kernel/debug/hnat"
-	local fastpath_mh_eth_hnat="0"
+	config_get fastpath "config" "fastpath" "none"
 
-	config_get fastpath "config" "fastpath"
-	[ -n "$fastpath" ] || fastpath="none"
-
-	# ---------- pre-clean conflicting engines ----------
+	# ---------- FastPath cleanup ----------
 	if [ "$fastpath" != "fast_classifier" ] && lsmod | grep -q "fast_classifier"; then
-		echo "0" >"/sys/fast_classifier/skip_to_bridge_ingress" 2>/dev/null
+		echo "0" > "/sys/fast_classifier/skip_to_bridge_ingress" 2>/dev/null
 		rm -f "/dev/sfe_ipv6"
 		rmmod "fast_classifier" 2>/dev/null
 	fi
@@ -115,14 +42,12 @@ start_service() {
 		rmmod "shortcut_fe_cm" 2>/dev/null
 	fi
 
-	# ---------- debugfs ----------
-	ensure_debugfs
-
-	if [ "$fastpath" != "mediatek_hnat" ] && hnat_module_loaded && [ -w "$hnat_path/hook_toggle" ]; then
-		disable_hnat_runtime "$hnat_path"
+	# ---------- Disable HNAT if another engine is selected ----------
+	if [ "$fastpath" != "mediatek_hnat" ] && hnat_module_loaded; then
+		echo "0" > "/sys/kernel/debug/hnat/hook_toggle" 2>/dev/null
 	fi
 
-	# ---------- engine activation ----------
+	# ---------- FastPath activation ----------
 	case "$fastpath" in
 	"fast_classifier")
 		local fastpath_fc_br fastpath_fc_ipv6
@@ -131,99 +56,86 @@ start_service() {
 		config_get_bool fastpath_fc_ipv6 "config" "fastpath_fc_ipv6" "0"
 
 		lsmod | grep -q "fast_classifier" || modprobe "fast_classifier" 2>/dev/null
-		echo "$fastpath_fc_br" >"/sys/fast_classifier/skip_to_bridge_ingress" 2>/dev/null
+
+		echo "$fastpath_fc_br" > "/sys/fast_classifier/skip_to_bridge_ingress" 2>/dev/null
 
 		if [ "$fastpath_fc_ipv6" -eq "1" ]; then
 			[ -e "/dev/sfe_ipv6" ] || mknod "/dev/sfe_ipv6" c "$(cat "/sys/sfe_ipv6/debug_dev" 2>/dev/null)" 0 2>/dev/null
 		else
 			[ ! -e "/dev/sfe_ipv6" ] || rm -f "/dev/sfe_ipv6"
 		fi
-
-		logger -t turboacc "engine=fast_classifier br=$fastpath_fc_br v6=$fastpath_fc_ipv6"
 		;;
 
 	"shortcut_fe_cm")
 		lsmod | grep -q "shortcut_fe_cm" || modprobe "shortcut_fe_cm" 2>/dev/null
-		logger -t turboacc "engine=shortcut_fe_cm"
 		;;
 
 	"mediatek_hnat")
+		local fastpath_mh_eth_hnat
+		local hnat_path="/sys/kernel/debug/hnat"
+
+		if ! hnat_module_loaded; then
+			load_hnat_module || logger -t turboacc "ERROR: cannot load HNAT module"
+		fi
+
 		config_get_bool fastpath_mh_eth_hnat "config" "fastpath_mh_eth_hnat" "1"
 
-		if ! load_hnat_module; then
-			logger -t turboacc "ERROR: cannot load mtkhnat/mediatek_hnat module"
-		fi
+		echo "$fastpath_mh_eth_hnat" > "$hnat_path/hook_toggle" 2>/dev/null
 
-		ensure_debugfs
-		wait_hnat_debugfs "$hnat_path" || \
-			logger -t turboacc "WARNING: $hnat_path not present after loading HNAT module"
-
-		# hook_toggle: 1=enable HNAT for Ethernet, 0=disable
-		if [ -w "$hnat_path/hook_toggle" ]; then
-			echo "$fastpath_mh_eth_hnat" >"$hnat_path/hook_toggle" 2>/dev/null || \
-				logger -t turboacc "WARNING: failed to write hook_toggle=$fastpath_mh_eth_hnat"
-		else
-			logger -t turboacc "WARNING: $hnat_path/hook_toggle not writable"
-		fi
-
-		if _uci_bool_enabled "$fastpath_mh_eth_hnat"; then
-			local fastpath_mh_eth_hnat_v6 fastpath_mh_eth_hnat_bind_rate
+		if [ "$fastpath_mh_eth_hnat" -eq "1" ]; then
+			local fastpath_mh_eth_hnat_v6
+			local fastpath_mh_eth_hnat_bind_rate
 
 			config_get_bool fastpath_mh_eth_hnat_v6 "config" "fastpath_mh_eth_hnat_v6" "1"
+
+			hwrite "$hnat_path/hnat_setting" "8 $fastpath_mh_eth_hnat_v6" || \
+				logger -t turboacc "WARNING: HNAT IPv6 configuration failed"
+
 			config_get fastpath_mh_eth_hnat_bind_rate "config" "fastpath_mh_eth_hnat_bind_rate" "30"
 
-			# hnat_setting: cmd 8 = IPv6 HNAT toggle
-			# cmd 11 = bind rate threshold
-			hwrite "$hnat_path/hnat_setting" "8 $fastpath_mh_eth_hnat_v6" || \
-				logger -t turboacc "WARNING: failed to write hnat_setting (IPv6)"
-
 			hwrite "$hnat_path/hnat_setting" "11 $fastpath_mh_eth_hnat_bind_rate" || \
-				logger -t turboacc "WARNING: failed to write hnat_setting (bind_rate)"
-
-			logger -t turboacc "engine=mediatek_hnat eth=$fastpath_mh_eth_hnat v6=$fastpath_mh_eth_hnat_v6 bind_rate=$fastpath_mh_eth_hnat_bind_rate"
-		else
-			logger -t turboacc "engine=mediatek_hnat eth=0 (Ethernet HNAT disabled by config)"
+				logger -t turboacc "WARNING: HNAT bind rate configuration failed"
 		fi
-		;;
-
-	*)
-		logger -t turboacc "engine=none (no fastpath selected)"
 		;;
 	esac
 
-	# ---------- fullcone NAT ----------
+	# ---------- FullCone NAT ----------
 	local fullcone
-	config_get "fullcone" "config" "fullcone" "1"
-	uci -q set "firewall.@defaults[0].fullcone"="$fullcone"
+	config_get fullcone "config" "fullcone" "1"
+	uci -q set "firewall.@defaults[0].fullcone=$fullcone"
 
 	# ---------- TCP CCA ----------
 	local tcpcca
 	config_get tcpcca "config" "tcpcca" "cubic"
 
-	if [ -n "$tcpcca" ] && grep -qF "$tcpcca" /proc/sys/net/ipv4/tcp_available_congestion_control 2>/dev/null; then
-		sysctl -w "net.ipv4.tcp_congestion_control=$tcpcca" >/dev/null 2>&1 || \
-			logger -t turboacc "WARNING: failed to set tcp_congestion_control=$tcpcca"
+	if grep -qwF "$tcpcca" /proc/sys/net/ipv4/tcp_available_congestion_control 2>/dev/null; then
+		sysctl -w "net.ipv4.tcp_congestion_control=$tcpcca" >/dev/null 2>&1
 	else
-		logger -t turboacc "WARNING: tcpcca=$tcpcca not available, keeping current"
+		logger -t turboacc "WARNING: TCP CCA $tcpcca unavailable"
 	fi
 
-	# ---------- commit and apply firewall ----------
+	# ---------- Firewall ----------
 	uci -q commit "firewall"
-	/etc/init.d/firewall restart >"/dev/null" 2>&1 || \
-		logger -t turboacc "WARNING: firewall restart failed"
+	/etc/init.d/firewall restart >/dev/null 2>&1
 
+	# ---------- System settings ----------
 	sed -i '/prefer-family/d' /etc/wgetrc
 	echo "prefer-family = IPv4" >> /etc/wgetrc
+
 	echo 4096 > /proc/sys/vm/min_free_kbytes
 	echo 3 > /proc/sys/vm/drop_caches
-
-	logger -t turboacc "started (fastpath=$fastpath fullcone=$fullcone tcpcca=$tcpcca)"
 }
 
 reload_service() {
 	stop_service
 	sleep 1
 	start_service
+}
+
+stop_service() {
+	echo "0" > "/sys/kernel/debug/hnat/hook_toggle" 2>/dev/null
+
+	sysctl -w net.ipv4.tcp_congestion_control=cubic >/dev/null 2>&1
 }
 
 service_triggers() {
